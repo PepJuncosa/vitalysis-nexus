@@ -1,22 +1,31 @@
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, TrendingUp, AlertTriangle } from "lucide-react";
+import { Activity, TrendingUp, AlertTriangle, Rotate3D } from "lucide-react";
+import Body3D from "@/components/Body3D";
 
-const bodyParts = {
+const bodyParts: Record<string, { name: string; load: number; fatigue: number; growth: number; recovery: "green" | "yellow" | "red" }> = {
   chest: { name: "Pecho", load: 75, fatigue: 45, growth: 82, recovery: "green" },
-  arms: { name: "Brazos", load: 68, fatigue: 55, growth: 70, recovery: "yellow" },
   abs: { name: "Abdomen", load: 60, fatigue: 30, growth: 65, recovery: "green" },
-  legs: { name: "Piernas", load: 85, fatigue: 70, growth: 88, recovery: "red" },
   back: { name: "Espalda", load: 72, fatigue: 48, growth: 76, recovery: "green" },
+  "left-arm": { name: "Brazo Izquierdo", load: 68, fatigue: 55, growth: 70, recovery: "yellow" },
+  "right-arm": { name: "Brazo Derecho", load: 68, fatigue: 55, growth: 70, recovery: "yellow" },
+  "left-shoulder": { name: "Hombro Izquierdo", load: 70, fatigue: 50, growth: 72, recovery: "green" },
+  "right-shoulder": { name: "Hombro Derecho", load: 70, fatigue: 50, growth: 72, recovery: "green" },
+  "left-quad": { name: "Cuádriceps Izquierdo", load: 85, fatigue: 70, growth: 88, recovery: "red" },
+  "right-quad": { name: "Cuádriceps Derecho", load: 85, fatigue: 70, growth: 88, recovery: "red" },
+  "left-hamstring": { name: "Isquiotibial Izquierdo", load: 80, fatigue: 65, growth: 85, recovery: "yellow" },
+  "right-hamstring": { name: "Isquiotibial Derecho", load: 80, fatigue: 65, growth: 85, recovery: "yellow" },
+  "left-calf": { name: "Pantorrilla Izquierda", load: 60, fatigue: 40, growth: 65, recovery: "green" },
+  "right-calf": { name: "Pantorrilla Derecha", load: 60, fatigue: 40, growth: 65, recovery: "green" },
+  heart: { name: "Corazón", load: 72, fatigue: 30, growth: 95, recovery: "green" },
+  head: { name: "Cabeza", load: 50, fatigue: 20, growth: 60, recovery: "green" },
 };
 
 export default function BodyMap() {
-  const [selectedPart, setSelectedPart] = useState<keyof typeof bodyParts | null>(null);
-  const [gender, setGender] = useState<"male" | "female">("male");
+  const [selectedPart, setSelectedPart] = useState<string | null>(null);
 
   const part = selectedPart ? bodyParts[selectedPart] : null;
 
@@ -25,10 +34,14 @@ export default function BodyMap() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        className="relative"
       >
-        <h1 className="text-3xl font-bold mb-2">Análisis Corporal Interactivo</h1>
+        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+          <Rotate3D className="h-8 w-8 text-primary animate-spin-slow" />
+          Análisis Corporal Interactivo 3D
+        </h1>
         <p className="text-muted-foreground">
-          Explora tu cuerpo y descubre estadísticas detalladas de cada zona
+          Rota el modelo, haz clic en cualquier zona y descubre estadísticas detalladas
         </p>
       </motion.div>
 
@@ -39,108 +52,31 @@ export default function BodyMap() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="h-full">
+          <Card className="h-full overflow-hidden border-2 border-primary/20 shadow-glow">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Modelo 3D</CardTitle>
-                <Tabs value={gender} onValueChange={(v) => setGender(v as "male" | "female")}>
-                  <TabsList>
-                    <TabsTrigger value="male">Masculino</TabsTrigger>
-                    <TabsTrigger value="female">Femenino</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
+              <CardTitle className="flex items-center gap-2">
+                <Rotate3D className="h-5 w-5 text-primary" />
+                Modelo Corporal 3D
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Arrastra para rotar • Scroll para zoom
+              </p>
             </CardHeader>
-            <CardContent>
-              <div className="relative aspect-[3/4] bg-secondary/20 rounded-lg overflow-hidden">
-                <svg
-                  viewBox="0 0 300 500"
-                  className="w-full h-full"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  {/* Head */}
-                  <ellipse cx="150" cy="60" rx="40" ry="50" fill="hsl(var(--muted))" />
-                  
-                  {/* Chest */}
-                  <motion.rect
-                    x="110"
-                    y="110"
-                    width="80"
-                    height="80"
-                    rx="10"
-                    fill={selectedPart === "chest" ? "hsl(var(--primary))" : "hsl(var(--muted))"}
-                    className="cursor-pointer transition-colors"
-                    onClick={() => setSelectedPart("chest")}
-                    whileHover={{ fill: "hsl(var(--primary) / 0.8)" }}
+            <CardContent className="p-0">
+              <div className="relative h-[600px] bg-gradient-to-br from-background via-secondary/30 to-background">
+                <Suspense fallback={
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center space-y-2">
+                      <Rotate3D className="h-12 w-12 text-primary mx-auto animate-spin" />
+                      <p className="text-sm text-muted-foreground">Cargando modelo 3D...</p>
+                    </div>
+                  </div>
+                }>
+                  <Body3D 
+                    selectedPart={selectedPart} 
+                    onPartClick={(id) => setSelectedPart(id)}
                   />
-                  
-                  {/* Arms */}
-                  <motion.rect
-                    x="50"
-                    y="120"
-                    width="50"
-                    height="100"
-                    rx="25"
-                    fill={selectedPart === "arms" ? "hsl(var(--primary))" : "hsl(var(--muted))"}
-                    className="cursor-pointer transition-colors"
-                    onClick={() => setSelectedPart("arms")}
-                    whileHover={{ fill: "hsl(var(--primary) / 0.8)" }}
-                  />
-                  <motion.rect
-                    x="200"
-                    y="120"
-                    width="50"
-                    height="100"
-                    rx="25"
-                    fill={selectedPart === "arms" ? "hsl(var(--primary))" : "hsl(var(--muted))"}
-                    className="cursor-pointer transition-colors"
-                    onClick={() => setSelectedPart("arms")}
-                    whileHover={{ fill: "hsl(var(--primary) / 0.8)" }}
-                  />
-                  
-                  {/* Abs */}
-                  <motion.rect
-                    x="120"
-                    y="200"
-                    width="60"
-                    height="80"
-                    rx="8"
-                    fill={selectedPart === "abs" ? "hsl(var(--primary))" : "hsl(var(--muted))"}
-                    className="cursor-pointer transition-colors"
-                    onClick={() => setSelectedPart("abs")}
-                    whileHover={{ fill: "hsl(var(--primary) / 0.8)" }}
-                  />
-                  
-                  {/* Legs */}
-                  <motion.rect
-                    x="115"
-                    y="290"
-                    width="30"
-                    height="150"
-                    rx="15"
-                    fill={selectedPart === "legs" ? "hsl(var(--primary))" : "hsl(var(--muted))"}
-                    className="cursor-pointer transition-colors"
-                    onClick={() => setSelectedPart("legs")}
-                    whileHover={{ fill: "hsl(var(--primary) / 0.8)" }}
-                  />
-                  <motion.rect
-                    x="155"
-                    y="290"
-                    width="30"
-                    height="150"
-                    rx="15"
-                    fill={selectedPart === "legs" ? "hsl(var(--primary))" : "hsl(var(--muted))"}
-                    className="cursor-pointer transition-colors"
-                    onClick={() => setSelectedPart("legs")}
-                    whileHover={{ fill: "hsl(var(--primary) / 0.8)" }}
-                  />
-                </svg>
-                
-                <div className="absolute bottom-4 left-0 right-0 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Haz clic en una zona para ver sus estadísticas
-                  </p>
-                </div>
+                </Suspense>
               </div>
             </CardContent>
           </Card>

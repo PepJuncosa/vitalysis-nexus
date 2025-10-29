@@ -50,7 +50,7 @@ export default function Dashboard() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-accent p-8 text-white"
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-chart-4 to-accent p-8 text-white shadow-glow animate-gradient"
       >
         <div className="relative z-10">
           <h1 className="text-4xl font-bold mb-2">¡Bienvenido de vuelta!</h1>
@@ -93,8 +93,9 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
+              whileHover={{ scale: 1.05 }}
             >
-              <Card className="hover:shadow-lg transition-shadow">
+              <Card className="hover:shadow-glow transition-all duration-300 btn-3d border-primary/10">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <Icon className={`h-8 w-8 ${metric.color}`} />

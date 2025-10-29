@@ -46,8 +46,8 @@ export function Layout() {
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center justify-between px-6 border-b border-border">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              HealthHub
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-chart-4 to-accent bg-clip-text text-transparent animate-gradient">
+              NutriStream
             </h1>
             <Button
               variant="ghost"
@@ -68,7 +68,9 @@ export function Layout() {
                 <Button
                   key={item.path}
                   variant={isActive ? "default" : "ghost"}
-                  className="w-full justify-start gap-3"
+                  className={`w-full justify-start gap-3 transition-all duration-300 ${
+                    isActive ? "btn-3d shadow-glow" : "hover:translate-x-1"
+                  }`}
                   onClick={() => {
                     navigate(item.path);
                     if (window.innerWidth < 1024) setIsSidebarOpen(false);
