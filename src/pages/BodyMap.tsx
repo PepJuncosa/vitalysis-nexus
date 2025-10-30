@@ -7,21 +7,68 @@ import { Activity, TrendingUp, AlertTriangle, Rotate3D } from "lucide-react";
 import Body3D from "@/components/Body3D";
 
 const bodyParts: Record<string, { name: string; load: number; fatigue: number; growth: number; recovery: "green" | "yellow" | "red" }> = {
+  // Cabeza y cuello
+  head: { name: "Cabeza", load: 50, fatigue: 20, growth: 60, recovery: "green" },
+  neck: { name: "Cuello", load: 55, fatigue: 35, growth: 62, recovery: "green" },
+  
+  // Torso
   chest: { name: "Pecho", load: 75, fatigue: 45, growth: 82, recovery: "green" },
+  "left-pectoral": { name: "Pectoral Izquierdo", load: 76, fatigue: 46, growth: 83, recovery: "green" },
+  "right-pectoral": { name: "Pectoral Derecho", load: 76, fatigue: 46, growth: 83, recovery: "green" },
   abs: { name: "Abdomen", load: 60, fatigue: 30, growth: 65, recovery: "green" },
+  core: { name: "Core", load: 65, fatigue: 35, growth: 70, recovery: "green" },
+  
+  // Espalda
   back: { name: "Espalda", load: 72, fatigue: 48, growth: 76, recovery: "green" },
-  "left-arm": { name: "Brazo Izquierdo", load: 68, fatigue: 55, growth: 70, recovery: "yellow" },
-  "right-arm": { name: "Brazo Derecho", load: 68, fatigue: 55, growth: 70, recovery: "yellow" },
+  trapezius: { name: "Trapecio", load: 70, fatigue: 45, growth: 74, recovery: "green" },
+  lats: { name: "Dorsales", load: 74, fatigue: 50, growth: 78, recovery: "yellow" },
+  
+  // Hombros
   "left-shoulder": { name: "Hombro Izquierdo", load: 70, fatigue: 50, growth: 72, recovery: "green" },
   "right-shoulder": { name: "Hombro Derecho", load: 70, fatigue: 50, growth: 72, recovery: "green" },
+  "left-deltoid": { name: "Deltoides Izquierdo", load: 72, fatigue: 52, growth: 74, recovery: "yellow" },
+  "right-deltoid": { name: "Deltoides Derecho", load: 72, fatigue: 52, growth: 74, recovery: "yellow" },
+  
+  // Brazos
+  "left-bicep": { name: "Bíceps Izquierdo", load: 68, fatigue: 55, growth: 70, recovery: "yellow" },
+  "right-bicep": { name: "Bíceps Derecho", load: 68, fatigue: 55, growth: 70, recovery: "yellow" },
+  "left-tricep": { name: "Tríceps Izquierdo", load: 67, fatigue: 54, growth: 69, recovery: "yellow" },
+  "right-tricep": { name: "Tríceps Derecho", load: 67, fatigue: 54, growth: 69, recovery: "yellow" },
+  
+  // Antebrazos
+  "left-forearm": { name: "Antebrazo Izquierdo", load: 62, fatigue: 48, growth: 66, recovery: "green" },
+  "right-forearm": { name: "Antebrazo Derecho", load: 62, fatigue: 48, growth: 66, recovery: "green" },
+  
+  // Manos
+  "left-hand": { name: "Mano Izquierda", load: 45, fatigue: 25, growth: 50, recovery: "green" },
+  "right-hand": { name: "Mano Derecha", load: 45, fatigue: 25, growth: 50, recovery: "green" },
+  
+  // Glúteos y cadera
+  glutes: { name: "Glúteos", load: 80, fatigue: 60, growth: 84, recovery: "yellow" },
+  hips: { name: "Cadera", load: 58, fatigue: 40, growth: 62, recovery: "green" },
+  
+  // Piernas
   "left-quad": { name: "Cuádriceps Izquierdo", load: 85, fatigue: 70, growth: 88, recovery: "red" },
   "right-quad": { name: "Cuádriceps Derecho", load: 85, fatigue: 70, growth: 88, recovery: "red" },
   "left-hamstring": { name: "Isquiotibial Izquierdo", load: 80, fatigue: 65, growth: 85, recovery: "yellow" },
   "right-hamstring": { name: "Isquiotibial Derecho", load: 80, fatigue: 65, growth: 85, recovery: "yellow" },
+  "left-adductor": { name: "Aductor Izquierdo", load: 70, fatigue: 55, growth: 73, recovery: "yellow" },
+  "right-adductor": { name: "Aductor Derecho", load: 70, fatigue: 55, growth: 73, recovery: "yellow" },
   "left-calf": { name: "Pantorrilla Izquierda", load: 60, fatigue: 40, growth: 65, recovery: "green" },
   "right-calf": { name: "Pantorrilla Derecha", load: 60, fatigue: 40, growth: 65, recovery: "green" },
+  "left-tibial": { name: "Tibial Izquierdo", load: 55, fatigue: 38, growth: 60, recovery: "green" },
+  "right-tibial": { name: "Tibial Derecho", load: 55, fatigue: 38, growth: 60, recovery: "green" },
+  
+  // Pies
+  "left-foot": { name: "Pie Izquierdo", load: 50, fatigue: 30, growth: 55, recovery: "green" },
+  "right-foot": { name: "Pie Derecho", load: 50, fatigue: 30, growth: 55, recovery: "green" },
+  
+  // Órganos
   heart: { name: "Corazón", load: 72, fatigue: 30, growth: 95, recovery: "green" },
-  head: { name: "Cabeza", load: 50, fatigue: 20, growth: 60, recovery: "green" },
+  "left-lung": { name: "Pulmón Izquierdo", load: 68, fatigue: 28, growth: 90, recovery: "green" },
+  "right-lung": { name: "Pulmón Derecho", load: 68, fatigue: 28, growth: 90, recovery: "green" },
+  stomach: { name: "Estómago", load: 55, fatigue: 25, growth: 75, recovery: "green" },
+  liver: { name: "Hígado", load: 60, fatigue: 22, growth: 80, recovery: "green" },
 };
 
 export default function BodyMap() {
