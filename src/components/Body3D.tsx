@@ -103,7 +103,13 @@ function BodyPart3D({
         document.body.style.cursor = "auto";
       }}
     >
-      <boxGeometry />
+      {type === 'bone' ? (
+        <capsuleGeometry args={[scale[0] * 0.4, scale[1] * 1.5, 8, 16]} />
+      ) : type === 'organ' ? (
+        <sphereGeometry args={[scale[0], 24, 24]} />
+      ) : (
+        <capsuleGeometry args={[scale[0] * 0.5, scale[1] * 1.2, 12, 24]} />
+      )}
       <meshPhysicalMaterial
         color={finalColor}
         transparent
@@ -176,7 +182,23 @@ function OrganMesh({
         document.body.style.cursor = "auto";
       }}
     >
-      <sphereGeometry args={[1, 32, 32]} />
+      {id.includes('heart') || id.includes('corazón') ? (
+        <sphereGeometry args={[1, 28, 28]} />
+      ) : id.includes('lung') || id.includes('pulmón') ? (
+        <group scale={[1, 1.4, 0.8]}>
+          <sphereGeometry args={[1, 24, 24]} />
+        </group>
+      ) : id.includes('stomach') || id.includes('estómago') ? (
+        <group scale={[1.2, 1, 0.9]}>
+          <sphereGeometry args={[1, 22, 22]} />
+        </group>
+      ) : id.includes('liver') || id.includes('hígado') ? (
+        <group scale={[1.5, 0.7, 1.1]}>
+          <sphereGeometry args={[1, 20, 20]} />
+        </group>
+      ) : (
+        <sphereGeometry args={[1, 24, 24]} />
+      )}
       <meshPhysicalMaterial
         color={finalColor}
         transparent
