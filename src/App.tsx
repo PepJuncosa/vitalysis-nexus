@@ -10,6 +10,9 @@ import Performance from "./pages/Performance";
 import Specialists from "./pages/Specialists";
 import ChefAI from "./pages/ChefAI";
 import Medical from "./pages/Medical";
+import Subscriptions from "./pages/Subscriptions";
+import Marketplace from "./pages/Marketplace";
+import ProductDetail from "./pages/ProductDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +31,9 @@ const App = () => (
             <Route path="/specialists" element={<Specialists />} />
             <Route path="/chef" element={<ChefAI />} />
             <Route path="/medical" element={<Medical />} />
+            <Route path="/subscriptions" element={<Subscriptions />} />
+            <Route path="/marketplace" element={<Marketplace />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
