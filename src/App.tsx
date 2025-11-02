@@ -13,6 +13,7 @@ import Medical from "./pages/Medical";
 import Subscriptions from "./pages/Subscriptions";
 import Marketplace from "./pages/Marketplace";
 import ProductDetail from "./pages/ProductDetail";
+import BluetoothDevices from "./pages/BluetoothDevices";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/bluetooth" element={<BluetoothDevices />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
