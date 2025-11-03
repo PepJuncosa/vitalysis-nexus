@@ -2,10 +2,12 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Sparkles } from "lucide-react";
+import { Check, Crown, Sparkles, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 interface SubscriptionPlan {
   id: string;
@@ -15,16 +17,46 @@ interface SubscriptionPlan {
   interval: string;
   features: string[];
   stripe_price_id?: string;
+  stripe_product_id?: string;
 }
+
+const SUBSCRIPTION_TIERS = {
+  premium: {
+    price_id: "price_1SPS6lADGPosc1JvBgK1Y9Gq",
+    product_id: "prod_TMARhd5DIPYBVy",
+  },
+  basic: {
+    price_id: "price_1SPS6wADGPosc1JvYWtxoEjD",
+    product_id: "prod_TMARAnlKCgjQwt",
+  },
+};
 
 export default function Subscriptions() {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { user, subscriptionStatus, isPremium, checkSubscription } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     fetchPlans();
-  }, []);
+    
+    // Check for success/cancel params
+    if (searchParams.get('success')) {
+      toast({
+        title: "¡Suscripción exitosa!",
+        description: "Tu suscripción se ha activado correctamente",
+      });
+      checkSubscription();
+    } else if (searchParams.get('canceled')) {
+      toast({
+        title: "Suscripción cancelada",
+        description: "Has cancelado el proceso de suscripción",
+        variant: "destructive",
+      });
+    }
+  }, [searchParams]);
 
   const fetchPlans = async () => {
     const { data, error } = await supabase
@@ -45,29 +77,53 @@ export default function Subscriptions() {
     setPlans((data || []) as SubscriptionPlan[]);
   };
 
-  const handleSubscribe = async (planId: string) => {
+  const handleSubscribe = async (priceId: string) => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast({
-          title: "Autenticación requerida",
-          description: "Debes iniciar sesión para suscribirte",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Here you would integrate with Stripe
-      toast({
-        title: "Proximamente",
-        description: "La integración con pagos estará disponible pronto",
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { priceId },
       });
-    } catch (error) {
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Ocurrió un error al procesar la suscripción",
+        description: error.message || "Ocurrió un error al procesar la suscripción",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo abrir el portal de gestión",
         variant: "destructive",
       });
     } finally {
@@ -94,12 +150,31 @@ export default function Subscriptions() {
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
           Desbloquea todo el potencial de tu entrenamiento con funciones premium
         </p>
+        
+        {subscriptionStatus.subscribed && (
+          <div className="flex items-center justify-center gap-3">
+            <Badge className="bg-accent">
+              Plan Activo: {isPremium ? "Premium" : "Básico"}
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleManageSubscription}
+              disabled={loading}
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Gestionar Suscripción
+            </Button>
+          </div>
+        )}
       </motion.div>
 
-      <div className="grid gap-6 md:grid-cols-3 max-w-6xl mx-auto">
+      <div className="grid gap-6 md:grid-cols-2 max-w-5xl mx-auto">
         {plans.map((plan, index) => {
           const Icon = getPlanIcon(plan.name);
-          const isPremium = plan.name.toLowerCase().includes('premium');
+          const isPlanPremium = plan.name.toLowerCase().includes('premium');
+          const isCurrentPlan = subscriptionStatus.subscribed && 
+            subscriptionStatus.product_id === (isPlanPremium ? SUBSCRIPTION_TIERS.premium.product_id : SUBSCRIPTION_TIERS.basic.product_id);
           
           return (
             <motion.div
@@ -108,11 +183,19 @@ export default function Subscriptions() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className={`relative h-full ${isPremium ? 'border-primary shadow-glow' : ''}`}>
-                {isPremium && (
+              <Card className={`relative h-full ${isPlanPremium ? 'border-primary shadow-glow' : ''} ${isCurrentPlan ? 'ring-2 ring-accent' : ''}`}>
+                {isPlanPremium && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <Badge className="bg-gradient-to-r from-primary to-accent text-white">
                       Popular
+                    </Badge>
+                  </div>
+                )}
+                
+                {isCurrentPlan && (
+                  <div className="absolute -top-3 right-4">
+                    <Badge className="bg-accent">
+                      Tu Plan Actual
                     </Badge>
                   </div>
                 )}
@@ -141,11 +224,11 @@ export default function Subscriptions() {
                   
                   <Button
                     className="w-full"
-                    variant={isPremium ? "default" : "outline"}
-                    onClick={() => handleSubscribe(plan.id)}
-                    disabled={loading}
+                    variant={isPlanPremium ? "default" : "outline"}
+                    onClick={() => handleSubscribe(isPlanPremium ? SUBSCRIPTION_TIERS.premium.price_id : SUBSCRIPTION_TIERS.basic.price_id)}
+                    disabled={loading || isCurrentPlan}
                   >
-                    Suscribirse
+                    {isCurrentPlan ? "Plan Actual" : "Suscribirse"}
                   </Button>
                 </CardContent>
               </Card>

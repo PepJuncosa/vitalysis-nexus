@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Star, Video, Calendar, Play, Award, Clock, Users, Search, Filter, MessageCircle, Heart } from "lucide-react";
+import { Star, Video, Calendar, Play, Award, Clock, Users, Search, Filter, MessageCircle, Heart, Crown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -133,6 +135,8 @@ export default function Specialists() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSpecialty, setFilterSpecialty] = useState("all");
   const [favorites, setFavorites] = useState<number[]>([]);
+  const { user, isPremium } = useAuth();
+  const navigate = useNavigate();
 
   const toggleFavorite = (id: number) => {
     setFavorites(prev => 
@@ -146,6 +150,21 @@ export default function Specialists() {
     const matchesFilter = filterSpecialty === "all" || specialist.specialty === filterSpecialty;
     return matchesSearch && matchesFilter;
   });
+
+  const handleBooking = (specialistId: number) => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    
+    if (isPremium) {
+      // Logic for premium users - sessions included
+      alert('Como usuario Premium, esta sesión está incluida en tu plan');
+    } else {
+      // Logic for basic users - need to pay
+      alert('Necesitas actualizar a Premium para sesiones incluidas o paga esta sesión individualmente');
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -167,6 +186,12 @@ export default function Specialists() {
             <p className="text-lg text-muted-foreground max-w-2xl">
               Conecta con profesionales de élite para optimizar tu salud y rendimiento deportivo
             </p>
+            {isPremium && (
+              <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/10 to-accent/10 rounded-full border border-primary/20">
+                <Crown className="h-5 w-5 text-primary" />
+                <span className="font-semibold text-primary">Sesiones ilimitadas incluidas en tu plan Premium</span>
+              </div>
+            )}
           </motion.div>
         </div>
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
@@ -271,7 +296,14 @@ export default function Specialists() {
                     <Clock className="h-3 w-3" />
                     <span>{specialist.experience} exp.</span>
                     <span className="mx-1">•</span>
-                    <span className="font-semibold text-primary">{specialist.price}</span>
+                    {isPremium ? (
+                      <Badge variant="secondary" className="bg-accent/20 text-accent text-xs">
+                        <Crown className="h-3 w-3 mr-1" />
+                        Incluido
+                      </Badge>
+                    ) : (
+                      <span className="font-semibold text-primary">{specialist.price}</span>
+                    )}
                   </div>
 
                   <Badge
@@ -370,12 +402,23 @@ export default function Specialists() {
 
                             <div className="flex items-center justify-between p-4 bg-primary/5 rounded-lg border border-primary/20">
                               <div>
-                                <p className="text-sm text-muted-foreground">Precio por sesión</p>
-                                <p className="text-2xl font-bold text-primary">{specialist.price}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {isPremium ? "Incluido en tu plan" : "Precio por sesión"}
+                                </p>
+                                {isPremium ? (
+                                  <div className="flex items-center gap-2">
+                                    <Crown className="h-5 w-5 text-accent" />
+                                    <p className="text-2xl font-bold text-accent">Gratis</p>
+                                  </div>
+                                ) : (
+                                  <p className="text-2xl font-bold text-primary">{specialist.price}</p>
+                                )}
                               </div>
-                              <Badge className="bg-accent">
-                                Primera consulta -20%
-                              </Badge>
+                              {!isPremium && (
+                                <Badge className="bg-accent">
+                                  Primera consulta -20%
+                                </Badge>
+                              )}
                             </div>
                           </TabsContent>
                           
@@ -402,9 +445,13 @@ export default function Specialists() {
                         </Tabs>
 
                         <div className="flex gap-3 pt-4">
-                          <Button className="flex-1" disabled={!specialist.available}>
+                          <Button 
+                            className="flex-1" 
+                            disabled={!specialist.available}
+                            onClick={() => handleBooking(specialist.id)}
+                          >
                             <Calendar className="h-4 w-4 mr-2" />
-                            Agendar consulta
+                            {isPremium ? "Agendar (Incluido)" : "Agendar consulta"}
                           </Button>
                           <Button variant="outline" size="icon">
                             <MessageCircle className="h-4 w-4" />
@@ -416,9 +463,10 @@ export default function Specialists() {
                       size="sm"
                       className="flex-1 btn-3d"
                       disabled={!specialist.available}
+                      onClick={() => handleBooking(specialist.id)}
                     >
                       <Calendar className="h-4 w-4 mr-1" />
-                      Agendar
+                      {isPremium ? "Incluido" : "Agendar"}
                     </Button>
                   </div>
                 </div>

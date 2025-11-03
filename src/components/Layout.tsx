@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   User,
@@ -15,8 +15,12 @@ import {
   Crown,
   ShoppingBag,
   Bluetooth,
+  LogOut,
+  LogIn,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { Badge } from "@/components/ui/badge";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -35,6 +39,7 @@ export function Layout() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, signOut, isPremium } = useAuth();
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -89,8 +94,36 @@ export function Layout() {
             })}
           </nav>
 
-          {/* Dark Mode Toggle */}
-          <div className="border-t border-border p-4">
+          {/* Auth & Dark Mode */}
+          <div className="border-t border-border p-4 space-y-2">
+            {user ? (
+              <>
+                {isPremium && (
+                  <Badge className="w-full justify-center mb-2 bg-gradient-to-r from-primary to-accent">
+                    <Crown className="h-3 w-3 mr-1" />
+                    Premium
+                  </Badge>
+                )}
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-3"
+                  onClick={() => signOut()}
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span>Cerrar Sesión</span>
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="default"
+                className="w-full justify-start gap-3"
+                onClick={() => navigate('/auth')}
+              >
+                <LogIn className="h-5 w-5" />
+                <span>Iniciar Sesión</span>
+              </Button>
+            )}
+            
             <Button
               variant="outline"
               className="w-full justify-start gap-3"
