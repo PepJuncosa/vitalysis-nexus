@@ -21,6 +21,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
+import NotificationCenter from "./NotificationCenter";
+import AchievementsBadge from "./AchievementsBadge";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -161,6 +163,12 @@ export function Layout() {
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex-1" />
+          {user && (
+            <div className="flex items-center gap-2">
+              <AchievementsBadge />
+              <NotificationCenter />
+            </div>
+          )}
         </header>
 
         {/* Page Content */}
