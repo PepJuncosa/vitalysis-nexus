@@ -157,13 +157,13 @@ export default function Specialists() {
       return;
     }
     
-    if (isPremium) {
-      // Logic for premium users - sessions included
-      alert('Como usuario Premium, esta sesión está incluida en tu plan');
-    } else {
-      // Logic for basic users - need to pay
-      alert('Necesitas actualizar a Premium para sesiones incluidas o paga esta sesión individualmente');
+    if (!isPremium) {
+      navigate('/subscriptions');
+      return;
     }
+    
+    // Logic for premium users - sessions included
+    alert('✅ Sesión agendada exitosamente - Incluida en tu plan Premium');
   };
 
   return (
@@ -239,7 +239,7 @@ export default function Specialists() {
             transition={{ delay: i * 0.05 }}
             whileHover={{ y: -8 }}
           >
-            <Card className="relative overflow-hidden group hover:shadow-glow transition-all duration-300 border-border/50">
+            <Card className="relative overflow-hidden group card-hover border-primary/10">
               {/* Favorite Button */}
               <Button
                 variant="ghost"
