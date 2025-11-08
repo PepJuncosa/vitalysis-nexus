@@ -1,5 +1,6 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,84 +14,80 @@ serve(async (req) => {
 
   try {
     const { conversationId, message } = await req.json();
-    
     const authHeader = req.headers.get('Authorization');
+    
     if (!authHeader) {
-      throw new Error('No authorization header');
+      throw new Error('Missing authorization header');
     }
 
-    const supabase = createClient(
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
+    // Get user data
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    if (userError || !user) throw new Error('Unauthorized');
 
-    // Get conversation messages
-    const { data: messages, error: messagesError } = await supabase
+    // Get user's data for context
+    const [activitiesData, rewardsData, achievementsData] = await Promise.all([
+      supabaseClient.from('user_activities').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10),
+      supabaseClient.from('user_rewards').select('*').eq('user_id', user.id).maybeSingle(),
+      supabaseClient.from('user_achievements')
+        .select('*, achievements(*)')
+        .eq('user_id', user.id)
+    ]);
+
+    // Get conversation history
+    const { data: messagesData } = await supabaseClient
       .from('ai_coach_messages')
       .select('role, content')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true });
 
-    if (messagesError) throw messagesError;
-
-    // Get user data for context
-    const { data: userRewards } = await supabase
-      .from('user_rewards')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
-    const { data: userActivities } = await supabase
-      .from('user_activities')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    const { data: achievements } = await supabase
-      .from('user_achievements')
-      .select('*, achievements(*)')
-      .eq('user_id', user.id);
+    const messages = messagesData || [];
 
     // Build context for AI
-    const userContext = {
-      points: userRewards?.total_points || 0,
-      level: userRewards?.level || 1,
-      recentActivities: userActivities || [],
-      achievements: achievements || [],
-    };
+    const userContext = `
+Usuario: ${user.email}
+Nivel actual: ${rewardsData.data?.level || 1}
+Puntos totales: ${rewardsData.data?.total_points || 0}
+Logros desbloqueados: ${achievementsData.data?.length || 0}
 
-    const systemPrompt = `Eres un coach personal de salud y fitness altamente capacitado. Tu objetivo es motivar, educar y guiar al usuario en su viaje de bienestar.
+Actividades recientes:
+${activitiesData.data?.map(a => `- ${a.activity_type}: ${a.description || 'Sin descripción'} (${a.points_earned} puntos)`).join('\n') || 'Sin actividades recientes'}
+`;
 
-Contexto del usuario:
-- Nivel actual: ${userContext.level}
-- Puntos totales: ${userContext.points}
-- Actividades recientes: ${userContext.recentActivities.length}
-- Logros desbloqueados: ${userContext.achievements.length}
+    const systemPrompt = `Eres un coach personal de salud y fitness altamente cualificado. Tu nombre es "FitCoach AI". 
 
-Tus responsabilidades:
-1. Analizar datos del usuario (rendimiento, nutrición, biométricos)
-2. Ofrecer recomendaciones personalizadas sobre entrenamientos, dieta y recuperación
-3. Proponer objetivos realistas y alcanzables
-4. Responder preguntas sobre estadísticas y progreso
-5. Motivar y celebrar los logros del usuario
-6. Proporcionar contenido educativo relevante
+Tu rol es analizar los datos del usuario y proporcionar:
+1. Recomendaciones personalizadas sobre entrenamientos basadas en su historial
+2. Consejos de nutrición adaptados a sus objetivos
+3. Estrategias de recuperación y descanso
+4. Contenido educativo relevante
+5. Objetivos realistas y alcanzables
 
-Mantén un tono amigable, motivador y profesional. Usa emojis ocasionalmente para hacer la conversación más dinámica. Sé específico en tus recomendaciones basándote en los datos del usuario.`;
+Datos del usuario:
+${userContext}
 
-    // Call Lovable AI
+Características de tu comunicación:
+- Sé motivador pero realista
+- Usa un tono amigable y profesional
+- Proporciona datos específicos y cuantificables
+- Pregunta sobre las necesidades y metas del usuario
+- Celebra los logros y progreso
+- Adapta tus recomendaciones al nivel actual del usuario
+
+IMPORTANTE: Responde en español y mantén las respuestas concisas pero informativas.`;
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Call Lovable AI
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
@@ -103,38 +100,31 @@ Mantén un tono amigable, motivador y profesional. Usa emojis ocasionalmente par
           ...messages,
           { role: 'user', content: message }
         ],
-        temperature: 0.7,
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
-      throw new Error(`AI Gateway error: ${response.status}`);
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error('AI API error:', aiResponse.status, errorText);
+      throw new Error(`AI API error: ${aiResponse.status}`);
     }
 
-    const aiResponse = await response.json();
-    const assistantMessage = aiResponse.choices[0].message.content;
+    const aiData = await aiResponse.json();
+    const assistantMessage = aiData.choices[0].message.content;
 
-    // Save user message
-    await supabase.from('ai_coach_messages').insert({
-      conversation_id: conversationId,
-      role: 'user',
-      content: message,
-    });
-
-    // Save assistant message
-    await supabase.from('ai_coach_messages').insert({
-      conversation_id: conversationId,
-      role: 'assistant',
-      content: assistantMessage,
-    });
-
-    // Update conversation timestamp
-    await supabase
-      .from('ai_coach_conversations')
-      .update({ updated_at: new Date().toISOString() })
-      .eq('id', conversationId);
+    // Save messages to database
+    await supabaseClient.from('ai_coach_messages').insert([
+      {
+        conversation_id: conversationId,
+        role: 'user',
+        content: message
+      },
+      {
+        conversation_id: conversationId,
+        role: 'assistant',
+        content: assistantMessage
+      }
+    ]);
 
     return new Response(
       JSON.stringify({ message: assistantMessage }),
@@ -144,8 +134,11 @@ Mantén un tono amigable, motivador y profesional. Usa emojis ocasionalmente par
   } catch (error) {
     console.error('Error in ai-coach function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
     );
   }
 });

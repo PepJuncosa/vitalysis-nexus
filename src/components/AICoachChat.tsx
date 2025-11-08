@@ -1,126 +1,108 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { Card } from '@/components/ui/card';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Bot, Send, Sparkles, X } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Bot, Send, X, Loader2, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
-  id: string;
 }
 
 export const AICoachChat = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    scrollToBottom();
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
   }, [messages]);
 
   useEffect(() => {
-    if (isOpen && user && !conversationId) {
+    if (isOpen && !conversationId) {
       initConversation();
     }
-  }, [isOpen, user]);
+  }, [isOpen]);
 
   const initConversation = async () => {
-    if (!user) return;
-
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Create new conversation
       const { data, error } = await supabase
         .from('ai_coach_conversations')
         .insert({
           user_id: user.id,
-          title: 'Nueva conversación',
+          title: 'Nueva conversación con FitCoach AI'
         })
         .select()
         .single();
 
       if (error) throw error;
-
+      
       setConversationId(data.id);
       
-      // Add welcome message
+      // Welcome message
       setMessages([{
-        id: crypto.randomUUID(),
         role: 'assistant',
-        content: '¡Hola! 👋 Soy tu coach personal de IA. Estoy aquí para ayudarte a alcanzar tus objetivos de salud y fitness. ¿En qué puedo ayudarte hoy?'
+        content: '¡Hola! Soy FitCoach AI, tu coach personal. Estoy aquí para ayudarte a alcanzar tus objetivos de salud y fitness. ¿En qué puedo ayudarte hoy?'
       }]);
+
     } catch (error) {
-      console.error('Error creating conversation:', error);
+      console.error('Error initializing conversation:', error);
       toast({
-        title: 'Error',
-        description: 'No se pudo iniciar la conversación',
-        variant: 'destructive',
+        title: "Error",
+        description: "No se pudo iniciar la conversación",
+        variant: "destructive"
       });
     }
   };
 
   const sendMessage = async () => {
-    if (!input.trim() || !conversationId || loading) return;
+    if (!input.trim() || !conversationId) return;
 
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: input.trim(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
+    const userMessage = input.trim();
     setInput('');
-    setLoading(true);
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setIsLoading(true);
 
     try {
       const { data, error } = await supabase.functions.invoke('ai-coach', {
         body: {
           conversationId,
-          message: userMessage.content,
-        },
+          message: userMessage
+        }
       });
 
       if (error) throw error;
 
-      const assistantMessage: Message = {
-        id: crypto.randomUUID(),
+      setMessages(prev => [...prev, {
         role: 'assistant',
-        content: data.message,
-      };
+        content: data.message
+      }]);
 
-      setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
-        title: 'Error',
-        description: 'No se pudo enviar el mensaje',
-        variant: 'destructive',
+        title: "Error",
+        description: "No se pudo enviar el mensaje",
+        variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
-
-  if (!user) return null;
 
   return (
     <>
@@ -131,12 +113,12 @@ export const AICoachChat = () => {
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            className="fixed bottom-6 right-6 z-50"
+            className="fixed bottom-8 right-8 z-50"
           >
             <Button
               onClick={() => setIsOpen(true)}
-              size="lg"
-              className="h-16 w-16 rounded-full shadow-lg bg-gradient-to-r from-primary to-accent hover:shadow-glow-accent"
+              className="h-16 w-16 rounded-full bg-gradient-to-r from-primary to-accent shadow-glow-accent"
+              size="icon"
             >
               <Sparkles className="h-6 w-6" />
             </Button>
@@ -148,29 +130,29 @@ export const AICoachChat = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
-            className="fixed bottom-6 right-6 z-50 w-full max-w-md"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="fixed bottom-8 right-8 z-50 w-full max-w-md"
           >
-            <Card className="shadow-2xl overflow-hidden">
+            <Card className="flex flex-col h-[600px] shadow-xl border-2 border-primary/20">
               {/* Header */}
-              <div className="bg-gradient-to-r from-primary to-accent p-4 text-primary-foreground">
+              <div className="p-4 border-b bg-gradient-to-r from-primary to-accent">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-background/20 flex items-center justify-center">
-                      <Bot className="h-6 w-6" />
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-background rounded-full">
+                      <Bot className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold">Coach IA Personal</h3>
-                      <p className="text-xs opacity-90">Siempre aquí para ayudarte</p>
+                      <h3 className="font-semibold text-primary-foreground">FitCoach AI</h3>
+                      <p className="text-xs text-primary-foreground/80">Tu coach personal</p>
                     </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsOpen(false)}
-                    className="hover:bg-background/20"
+                    className="text-primary-foreground hover:bg-primary-foreground/10"
                   >
                     <X className="h-5 w-5" />
                   </Button>
@@ -178,55 +160,58 @@ export const AICoachChat = () => {
               </div>
 
               {/* Messages */}
-              <div className="h-96 overflow-y-auto p-4 bg-muted/30 space-y-4">
-                {messages.map((msg) => (
-                  <motion.div
-                    key={msg.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-2xl px-4 py-2 ${
-                        msg.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-background border border-border'
-                      }`}
+              <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+                <div className="space-y-4">
+                  {messages.map((msg, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                    </div>
-                  </motion.div>
-                ))}
-                {loading && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex justify-start"
-                  >
-                    <div className="bg-background border border-border rounded-2xl px-4 py-2">
-                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                    </div>
-                  </motion.div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
+                      <div
+                        className={`max-w-[80%] p-3 rounded-lg ${
+                          msg.role === 'user'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted'
+                        }`}
+                      >
+                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                  {isLoading && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex justify-start"
+                    >
+                      <div className="bg-muted p-3 rounded-lg">
+                        <div className="flex gap-1">
+                          <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              </ScrollArea>
 
               {/* Input */}
-              <div className="p-4 bg-background border-t border-border">
+              <div className="p-4 border-t">
                 <div className="flex gap-2">
-                  <Textarea
+                  <Input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Pregunta a tu coach..."
-                    className="resize-none min-h-[44px] max-h-32"
-                    disabled={loading}
+                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                    placeholder="Escribe tu pregunta..."
+                    disabled={isLoading}
                   />
                   <Button
                     onClick={sendMessage}
-                    disabled={!input.trim() || loading}
+                    disabled={isLoading || !input.trim()}
                     size="icon"
-                    className="h-11 w-11 shrink-0"
                   >
                     <Send className="h-4 w-4" />
                   </Button>

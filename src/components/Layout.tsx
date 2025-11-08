@@ -23,6 +23,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import NotificationCenter from "./NotificationCenter";
 import AchievementsBadge from "./AchievementsBadge";
+import { AICoachChat } from "./AICoachChat";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -176,6 +177,9 @@ export function Layout() {
           <Outlet />
         </main>
       </div>
+
+      {/* AI Coach Chat */}
+      {user && <AICoachChat />}
 
       {/* Mobile Overlay */}
       {isSidebarOpen && (
