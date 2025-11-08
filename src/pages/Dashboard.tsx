@@ -3,6 +3,8 @@ import { Activity, Heart, Zap, Moon, TrendingUp, AlertCircle } from "lucide-reac
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { AICoachChat } from "@/components/AICoachChat";
+import { RewardsPanel } from "@/components/RewardsPanel";
 
 const metrics = [
   {
@@ -182,6 +184,18 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Rewards Panel */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+      >
+        <RewardsPanel />
+      </motion.div>
+
+      {/* AI Coach Chat */}
+      <AICoachChat />
     </div>
   );
 }
