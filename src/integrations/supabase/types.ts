@@ -368,6 +368,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_reminder_settings: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          frequency_hours: number
+          id: string
+          last_sent_at: string | null
+          preferred_time: string | null
+          reminder_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          frequency_hours?: number
+          id?: string
+          last_sent_at?: string | null
+          preferred_time?: string | null
+          reminder_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          frequency_hours?: number
+          id?: string
+          last_sent_at?: string | null
+          preferred_time?: string | null
+          reminder_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_rewards: {
         Row: {
           created_at: string

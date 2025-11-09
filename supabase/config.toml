@@ -2,3 +2,6 @@ project_id = "ckhvnkpcmlnassukxuzs"
 
 [functions.ai-coach]
 verify_jwt = true
+
+[functions.send-smart-reminders]
+verify_jwt = false
