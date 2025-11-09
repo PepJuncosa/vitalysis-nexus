@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -110,11 +110,14 @@ Actividades recientes: ${activities?.length || 0}
       const aiData = await aiResponse.json();
       const reminderMessage = aiData.choices[0].message.content;
 
-      const titles = {
+      const titles: Record<string, string> = {
         workout: '💪 Hora de Entrenar',
         hydration: '💧 Momento de Hidratarse',
         rest: '😴 Tiempo de Descanso'
       };
+      
+      const reminderType = reminder.reminder_type as string;
+      const title = titles[reminderType] || '🔔 Recordatorio';
 
       // Create notification
       const { error: notificationError } = await supabaseClient
@@ -122,7 +125,7 @@ Actividades recientes: ${activities?.length || 0}
         .insert({
           user_id: reminder.user_id,
           type: 'reminder',
-          title: titles[reminder.reminder_type as keyof typeof titles],
+          title: title,
           message: reminderMessage,
           metadata: {
             reminder_type: reminder.reminder_type,
