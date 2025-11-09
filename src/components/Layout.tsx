@@ -15,6 +15,7 @@ import {
   Crown,
   ShoppingBag,
   Bluetooth,
+  Watch,
   LogOut,
   LogIn,
 } from "lucide-react";
@@ -33,6 +34,7 @@ const navItems = [
   { icon: ChefHat, label: "Chef IA", path: "/chef" },
   { icon: FileHeart, label: "Ficha Médica", path: "/medical" },
   { icon: Bluetooth, label: "Dispositivos BT", path: "/bluetooth" },
+  { icon: Watch, label: "Wearables", path: "/wearables" },
   { icon: Crown, label: "Suscripciones", path: "/subscriptions" },
   { icon: ShoppingBag, label: "Marketplace", path: "/marketplace" },
 ];

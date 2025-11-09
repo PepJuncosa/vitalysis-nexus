@@ -15,6 +15,7 @@ import Subscriptions from "./pages/Subscriptions";
 import Marketplace from "./pages/Marketplace";
 import ProductDetail from "./pages/ProductDetail";
 import BluetoothDevices from "./pages/BluetoothDevices";
+import Wearables from "./pages/Wearables";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/bluetooth" element={<BluetoothDevices />} />
+              <Route path="/wearables" element={<Wearables />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

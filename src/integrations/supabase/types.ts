@@ -475,6 +475,98 @@ export type Database = {
           },
         ]
       }
+      wearable_connections: {
+        Row: {
+          access_token: string | null
+          connected_at: string
+          created_at: string
+          id: string
+          is_active: boolean
+          last_sync_at: string | null
+          metadata: Json | null
+          provider: string
+          refresh_token: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          connected_at?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          metadata?: Json | null
+          provider: string
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          connected_at?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          metadata?: Json | null
+          provider?: string
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wearable_data: {
+        Row: {
+          connection_id: string | null
+          created_at: string
+          data_type: string
+          id: string
+          metadata: Json | null
+          recorded_at: string
+          source: string
+          unit: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          connection_id?: string | null
+          created_at?: string
+          data_type: string
+          id?: string
+          metadata?: Json | null
+          recorded_at: string
+          source: string
+          unit: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          connection_id?: string | null
+          created_at?: string
+          data_type?: string
+          id?: string
+          metadata?: Json | null
+          recorded_at?: string
+          source?: string
+          unit?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wearable_data_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "wearable_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
