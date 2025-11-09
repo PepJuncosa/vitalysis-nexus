@@ -62,9 +62,9 @@ export const ReminderSettings = () => {
       if (!data || data.length === 0) {
         // Create default settings
         const defaultSettings = [
-          { user_id: user.id, reminder_type: 'workout', enabled: true, frequency_hours: 24 },
-          { user_id: user.id, reminder_type: 'hydration', enabled: true, frequency_hours: 4 },
-          { user_id: user.id, reminder_type: 'rest', enabled: true, frequency_hours: 168 }
+          { user_id: user.id, reminder_type: 'workout' as const, enabled: true, frequency_hours: 24 },
+          { user_id: user.id, reminder_type: 'hydration' as const, enabled: true, frequency_hours: 4 },
+          { user_id: user.id, reminder_type: 'rest' as const, enabled: true, frequency_hours: 168 }
         ];
 
         const { data: newData, error: insertError } = await supabase
@@ -73,9 +73,9 @@ export const ReminderSettings = () => {
           .select();
 
         if (insertError) throw insertError;
-        setSettings(newData || []);
+        setSettings(newData as ReminderSetting[] || []);
       } else {
-        setSettings(data);
+        setSettings(data as ReminderSetting[]);
       }
     } catch (error) {
       console.error('Error loading settings:', error);

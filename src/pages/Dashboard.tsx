@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { PointsTracker } from "@/components/PointsTracker";
+import { ReminderSettings } from "@/components/ReminderSettings";
 
 const metrics = [
   {
@@ -86,6 +87,15 @@ export default function Dashboard() {
         transition={{ duration: 0.6, delay: 0.2 }}
       >
         <PointsTracker />
+      </motion.div>
+
+      {/* Reminder Settings */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+      >
+        <ReminderSettings />
       </motion.div>
 
       {/* Metrics Grid */}
