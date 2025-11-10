@@ -78,6 +78,18 @@ serve(async (req) => {
       .update({ last_sync_at: new Date().toISOString() })
       .eq('id', connectionId);
 
+    // Trigger intelligent health analysis in background
+    if (syncedData.length > 0) {
+      fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/analyze-wearable-health`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.id })
+      }).catch(err => console.error('Error triggering health analysis:', err));
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
