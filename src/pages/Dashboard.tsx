@@ -1,10 +1,18 @@
 import { motion } from "framer-motion";
-import { Activity, Heart, Zap, Moon, TrendingUp, AlertCircle } from "lucide-react";
+import { Activity, Heart, Zap, Moon, TrendingUp, AlertCircle, Crown, Watch, Bluetooth, MoreVertical } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { PointsTracker } from "@/components/PointsTracker";
 import { ReminderSettings } from "@/components/ReminderSettings";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
 
 const metrics = [
   {
@@ -45,6 +53,7 @@ const goals = [
 
 export default function Dashboard() {
   const wellnessScore = 87;
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-6">
@@ -54,6 +63,30 @@ export default function Dashboard() {
         animate={{ opacity: 1, y: 0 }}
         className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-chart-4 to-accent p-8 text-white shadow-glow animate-gradient"
       >
+        <div className="absolute top-4 right-4 z-20">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="secondary" size="sm" className="gap-2">
+                <MoreVertical className="h-4 w-4" />
+                Accesos Rápidos
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => navigate("/subscriptions")} className="gap-2">
+                <Crown className="h-4 w-4" />
+                Suscripciones
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/wearables")} className="gap-2">
+                <Watch className="h-4 w-4" />
+                Wearables
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/bluetooth")} className="gap-2">
+                <Bluetooth className="h-4 w-4" />
+                Dispositivos BT
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
         <div className="relative z-10">
           <h1 className="text-4xl font-bold mb-2 animate-fade-in">¡Bienvenido de vuelta!</h1>
           <p className="text-lg opacity-90 mb-6">

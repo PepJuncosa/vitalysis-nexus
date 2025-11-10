@@ -33,9 +33,6 @@ const navItems = [
   { icon: Users, label: "Especialistas", path: "/specialists" },
   { icon: ChefHat, label: "Chef IA", path: "/chef" },
   { icon: FileHeart, label: "Ficha Médica", path: "/medical" },
-  { icon: Bluetooth, label: "Dispositivos BT", path: "/bluetooth" },
-  { icon: Watch, label: "Wearables", path: "/wearables" },
-  { icon: Crown, label: "Suscripciones", path: "/subscriptions" },
   { icon: ShoppingBag, label: "Marketplace", path: "/marketplace" },
 ];
 
