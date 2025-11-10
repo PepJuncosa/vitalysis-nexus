@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import WearableAnalyticsDashboard from '@/components/WearableAnalyticsDashboard';
 import { 
   Watch, 
   Activity, 
@@ -365,27 +366,14 @@ export default function Wearables() {
         </div>
       </motion.div>
 
-      {/* Insights */}
+      {/* Analytics Dashboard */}
       {connections.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <TrendingUp className="w-6 h-6 text-primary" />
-              <h2 className="text-xl font-bold">Perspectivas</h2>
-            </div>
-            <div className="space-y-4">
-              <div className="p-4 bg-muted rounded-lg">
-                <p className="text-sm">
-                  Tus dispositivos están sincronizando datos automáticamente. Revisa tu
-                  dashboard para ver tendencias y recomendaciones personalizadas.
-                </p>
-              </div>
-            </div>
-          </Card>
+          <WearableAnalyticsDashboard timeRange={7} />
         </motion.div>
       )}
     </div>
